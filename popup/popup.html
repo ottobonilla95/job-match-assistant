@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Job Match</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #111;
+      color: #e5e5e5;
+      width: 240px;
+      padding: 16px;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .logo {
+      width: 32px;
+      height: 32px;
+      background: #fff;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      color: #111;
+      font-weight: bold;
+    }
+    h1 { font-size: 16px; font-weight: 600; }
+    .status {
+      padding: 12px;
+      background: #1a1a1a;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+    .status.ready { border-left: 3px solid #22c55e; }
+    .status.warn { border-left: 3px solid #888; }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      background: #fff;
+      border: none;
+      border-radius: 8px;
+      color: #111;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn:hover { background: #e5e5e5; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">✓</div>
+    <h1>Job Match</h1>
+  </div>
+  
+  <div id="status" class="status">Checking...</div>
+  
+  <button class="btn" id="settings-btn">Settings</button>
+
+  <script>
+    document.getElementById('settings-btn').onclick = () => {
+      chrome.runtime.openOptionsPage();
+    };
+
+    chrome.runtime.sendMessage({ type: 'CHECK_READY' }, (res) => {
+      const el = document.getElementById('status');
+      if (res.ready) {
+        el.className = 'status ready';
+        el.innerHTML = '✅ Ready<br>Click ✓ on any job page';
+      } else {
+        el.className = 'status warn';
+        el.innerHTML = '⚠️ Paste your CV in Settings';
+      }
+    });
+  </script>
+</body>
+</html>

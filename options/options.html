@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job Match - Settings</title>
+  <link rel="stylesheet" href="options.css">
+  <script src="../lib/pdf.min.js"></script>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="logo">✓</div>
+      <h1>Job Match</h1>
+    </header>
+
+    <main class="main">
+      <!-- Status -->
+      <div id="status" class="status hidden"></div>
+
+      <!-- CV Upload -->
+      <section class="card">
+        <h2>📄 Upload your CV</h2>
+        
+        <div class="upload-area" id="drop-zone">
+          <div class="upload-icon">📁</div>
+          <p>Drop PDF here or click to upload</p>
+          <input type="file" id="file-input" accept=".pdf" hidden>
+        </div>
+        
+        <div id="file-name" class="file-name hidden"></div>
+      </section>
+
+      <!-- Parsed Profile -->
+      <section id="profile-section" class="card hidden">
+        <h2>👤 Your Profile</h2>
+        <div id="profile-display"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>

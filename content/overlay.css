@@ -1,0 +1,365 @@
+/* Job Match - Clean dark overlay */
+
+#job-match-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 52px;
+  height: 52px;
+  background: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: #111;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  z-index: 2147483647;
+  transition: transform 0.15s, box-shadow 0.15s;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: bold;
+}
+
+#job-match-btn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.4);
+}
+
+#job-match-btn.loading {
+  pointer-events: none;
+  background: #333;
+}
+
+.jm-btn-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #555;
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: jm-spin 0.7s linear infinite;
+}
+
+#job-match-widget {
+  position: fixed;
+  bottom: 90px;
+  right: 24px;
+  width: 380px;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 16px;
+  z-index: 2147483647;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  color: #e5e5e5;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#job-match-widget * {
+  box-sizing: border-box;
+}
+
+.jm-header {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 12px 0 12px;
+  background: #111;
+}
+
+.jm-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 28px 28px 28px;
+}
+
+.jm-close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #666;
+  font-size: 20px;
+  border-radius: 6px;
+  background: transparent;
+  transition: background 0.15s, color 0.15s;
+}
+
+.jm-close:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.jm-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 30px;
+  color: #888;
+}
+
+.jm-spinner {
+  width: 32px;
+  height: 32px;
+  border: 2px solid #333;
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: jm-spin 0.7s linear infinite;
+}
+
+@keyframes jm-spin {
+  to { transform: rotate(360deg); }
+}
+
+.jm-error {
+  text-align: center;
+  padding: 40px 20px;
+  color: #ef4444;
+  line-height: 1.6;
+}
+
+.jm-error small {
+  color: #666;
+  font-size: 12px;
+}
+
+/* Error state needs padding since content has less padding at top */
+.jm-content .jm-error {
+  padding-top: 20px;
+}
+
+/* Title */
+.jm-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 28px 0;
+  color: #fff;
+  line-height: 1.4;
+}
+
+/* Info Grid (Role, Level, Location, Work, Exp) */
+.jm-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin: 0 0 28px 0;
+  padding: 24px;
+  background: #1a1a1a;
+  border-radius: 12px;
+}
+
+.jm-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.jm-info-label {
+  font-size: 11px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+  padding: 0;
+}
+
+.jm-info-value {
+  font-size: 14px;
+  color: #e5e5e5;
+  font-weight: 500;
+  margin: 0;
+  padding: 0;
+}
+
+/* Section */
+.jm-section {
+  margin: 0 0 28px 0;
+  padding: 0;
+}
+
+.jm-section-label {
+  font-size: 11px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 14px 0;
+  padding: 0;
+}
+
+/* Keywords/Job Requires */
+.jm-keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+}
+
+.jm-tag {
+  background: #222;
+  color: #e5e5e5;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid #333;
+  margin: 0;
+}
+
+.jm-tag-match {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+/* Salary section */
+.jm-salary-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+}
+
+.jm-salary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 18px;
+  background: #1a1a1a;
+  border-radius: 10px;
+  margin: 0;
+}
+
+.jm-salary-label {
+  font-size: 14px;
+  color: #888;
+  margin: 0;
+  padding: 0;
+}
+
+.jm-salary-value {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+  padding: 0;
+}
+
+.jm-salary-offered {
+  color: #888;
+}
+
+.jm-salary-suggested {
+  color: #22c55e;
+}
+
+/* Row layout for Match/Apply */
+.jm-row {
+  display: flex;
+  gap: 14px;
+  margin: 0 0 28px 0;
+  padding: 0;
+}
+
+.jm-cell {
+  flex: 1;
+  padding: 22px;
+  background: #1a1a1a;
+  border-radius: 12px;
+  text-align: center;
+  margin: 0;
+}
+
+.jm-label {
+  color: #666;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 10px 0;
+  padding: 0;
+}
+
+.jm-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+  padding: 0;
+}
+
+/* Reason/Analysis */
+.jm-reason {
+  font-size: 14px;
+  color: #999;
+  line-height: 1.7;
+  padding: 18px 20px;
+  background: #1a1a1a;
+  border-radius: 12px;
+  border-left: 3px solid #444;
+  margin: 0;
+}
+
+/* Cover Letter Button */
+.jm-cover-btn {
+  width: 100%;
+  margin-top: 20px;
+  padding: 14px 20px;
+  background: #222;
+  border: 1px solid #444;
+  border-radius: 10px;
+  color: #e5e5e5;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.jm-cover-btn:hover:not(:disabled) {
+  background: #333;
+  border-color: #555;
+}
+
+.jm-cover-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Cover Letter Container */
+.jm-cover-letter {
+  margin-top: 16px;
+}
+
+.jm-cover-text {
+  font-size: 13px;
+  color: #ccc;
+  line-height: 1.7;
+  padding: 18px 20px;
+  background: #1a1a1a;
+  border-radius: 12px;
+  border: 1px solid #333;
+  margin-bottom: 12px;
+}
+
+.jm-copy-btn {
+  width: 100%;
+  padding: 12px 16px;
+  background: #22c55e;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.jm-copy-btn:hover {
+  background: #16a34a;
+}
