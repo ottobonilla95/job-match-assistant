@@ -11,7 +11,7 @@
   function createButton() {
     const btn = document.createElement('div');
     btn.id = 'job-match-btn';
-    btn.innerHTML = '✓';
+    btn.innerHTML = '✨';
     btn.title = 'Analyze Job';
     document.body.appendChild(btn);
 
@@ -49,9 +49,18 @@
       // Check if ready
       const ready = await chrome.runtime.sendMessage({ type: 'CHECK_READY' });
       
+      // Handle case where background didn't respond
+      if (!ready) {
+        btnElement.classList.remove('loading');
+        btnElement.innerHTML = '✨';
+        const w = createWidget();
+        w.innerHTML = '<div class="jm-header"><div class="jm-close" onclick="this.closest(\'#job-match-widget\').remove()">×</div></div><div class="jm-content"><div class="jm-error">❌ Extension not ready<br><small>Try reloading the page</small></div></div>';
+        return;
+      }
+      
       if (!ready.hasApiKey) {
         btnElement.classList.remove('loading');
-        btnElement.innerHTML = '✓';
+        btnElement.innerHTML = '✨';
         const w = createWidget();
         w.innerHTML = '<div class="jm-header"><div class="jm-close" onclick="this.closest(\'#job-match-widget\').remove()">×</div></div><div class="jm-content"><div class="jm-error">❌ No API key<br><small>Copy config.example.js → config.js<br>and add your OpenAI key</small></div></div>';
         return;
@@ -59,9 +68,14 @@
       
       if (!ready.hasProfile) {
         btnElement.classList.remove('loading');
-        btnElement.innerHTML = '✓';
+        btnElement.innerHTML = '✨';
         const w = createWidget();
-        w.innerHTML = '<div class="jm-header"><div class="jm-close" onclick="this.closest(\'#job-match-widget\').remove()">×</div></div><div class="jm-content"><div class="jm-error">❌ No profile<br><small>Paste your CV in Settings</small></div></div>';
+        w.innerHTML = `<div class="jm-header"><div class="jm-close" id="jm-close-error">×</div></div><div class="jm-content"><div class="jm-error">❌ No CV uploaded<br><small>Add your CV first</small></div><button class="jm-settings-btn" id="jm-open-settings">⚙️ Open Settings</button></div>`;
+        w.querySelector('#jm-close-error').addEventListener('click', () => w.remove());
+        w.querySelector('#jm-open-settings').addEventListener('click', () => {
+          chrome.runtime.sendMessage({ type: 'OPEN_OPTIONS' });
+          w.remove();
+        });
         return;
       }
 
@@ -69,7 +83,7 @@
       
       if (!jobText || jobText.length < 100) {
         btnElement.classList.remove('loading');
-        btnElement.innerHTML = '✓';
+        btnElement.innerHTML = '✨';
         const w = createWidget();
         w.innerHTML = '<div class="jm-header"><div class="jm-close" onclick="this.closest(\'#job-match-widget\').remove()">×</div></div><div class="jm-content"><div class="jm-error">❌ Could not find job description</div></div>';
         return;
@@ -82,7 +96,7 @@
 
       // Reset button
       btnElement.classList.remove('loading');
-      btnElement.innerHTML = '✓';
+      btnElement.innerHTML = '✨';
 
       if (response.error) {
         const w = createWidget();
@@ -96,7 +110,7 @@
 
     } catch (err) {
       btnElement.classList.remove('loading');
-      btnElement.innerHTML = '✓';
+      btnElement.innerHTML = '✨';
       const w = createWidget();
       w.innerHTML = `<div class="jm-header"><div class="jm-close" onclick="this.closest('#job-match-widget').remove()">×</div></div><div class="jm-content"><div class="jm-error">❌ ${err.message}</div></div>`;
     }

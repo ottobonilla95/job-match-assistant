@@ -1,5 +1,29 @@
 /* Job Match - Clean dark overlay */
 
+/* Custom scrollbar - green theme */
+#job-match-widget::-webkit-scrollbar,
+#job-match-widget *::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+#job-match-widget::-webkit-scrollbar-track,
+#job-match-widget *::-webkit-scrollbar-track {
+  background: #1a1a1a;
+  border-radius: 4px;
+}
+
+#job-match-widget::-webkit-scrollbar-thumb,
+#job-match-widget *::-webkit-scrollbar-thumb {
+  background: white;
+  border-radius: 4px;
+}
+
+#job-match-widget::-webkit-scrollbar-thumb:hover,
+#job-match-widget *::-webkit-scrollbar-thumb:hover {
+  background: lightgray;
+}
+
 #job-match-btn {
   position: fixed;
   bottom: 24px;
@@ -74,7 +98,7 @@
 .jm-content {
   flex: 1;
   overflow-y: auto;
-  padding: 0 28px 28px 28px;
+  padding: 0 16px 16px 16px;
 }
 
 .jm-close {
@@ -139,7 +163,7 @@
 .jm-title {
   font-size: 18px;
   font-weight: 600;
-  margin: 0 0 28px 0;
+  margin: 0 0 18px 0;
   color: #fff;
   line-height: 1.4;
 }
@@ -148,9 +172,9 @@
 .jm-info-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  margin: 0 0 28px 0;
-  padding: 24px;
+  gap: 16px;
+  margin: 0 0 12px 0;
+  padding: 16px;
   background: #1a1a1a;
   border-radius: 12px;
 }
@@ -180,7 +204,7 @@
 
 /* Section */
 .jm-section {
-  margin: 0 0 28px 0;
+  margin: 0 0 12px 0;
   padding: 0;
 }
 
@@ -189,7 +213,7 @@
   color: #666;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin: 0 0 14px 0;
+  margin: 0 0 12px 0;
   padding: 0;
 }
 
@@ -197,7 +221,7 @@
 .jm-keywords {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 4px;
   margin: 0;
   padding: 0;
 }
@@ -264,7 +288,7 @@
 .jm-row {
   display: flex;
   gap: 14px;
-  margin: 0 0 28px 0;
+  margin: 0 0 12px 0;
   padding: 0;
 }
 
@@ -362,4 +386,23 @@
 
 .jm-copy-btn:hover {
   background: #16a34a;
+}
+
+/* Settings button in error state */
+.jm-settings-btn {
+  width: 100%;
+  padding: 12px 16px;
+  margin-top: 12px;
+  background: #333;
+  border: 1px solid #555;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.jm-settings-btn:hover {
+  background: #444;
 }

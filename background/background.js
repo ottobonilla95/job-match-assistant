@@ -1,131 +1,154 @@
 // Background service worker - handles OpenAI API calls
 try {
-  importScripts('/config.js');
+  importScripts("/config.js");
 } catch (e) {
-  console.error('Job Match: config.js not found. Copy config.example.js to config.js and add your API key.');
+  console.error(
+    "Job Match: config.js not found. Copy config.example.js to config.js and add your API key."
+  );
 }
-console.log('Job Match: Service worker loaded');
+console.log("Job Match: Service worker loaded");
 
-const OPENAI_API_KEY = (typeof CONFIG !== 'undefined') ? CONFIG.OPENAI_API_KEY : null;
+const OPENAI_API_KEY =
+  typeof CONFIG !== "undefined" ? CONFIG.OPENAI_API_KEY : null;
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  console.log('Job Match: Received message', request.type);
-  if (request.type === 'ANALYZE_JOB') {
+  console.log("Job Match: Received message", request.type);
+  if (request.type === "ANALYZE_JOB") {
     analyzeJob(request.jobText).then(sendResponse);
     return true;
   }
-  
-  if (request.type === 'PARSE_CV') {
+
+  if (request.type === "PARSE_CV") {
     parseCV(request.cvText).then(sendResponse);
     return true;
   }
-  
-  if (request.type === 'CHECK_READY') {
-    checkReady().then(sendResponse).catch(() => sendResponse({ ready: false }));
+
+  if (request.type === "CHECK_READY") {
+    checkReady()
+      .then(sendResponse)
+      .catch(() => sendResponse({ ready: false }));
     return true;
   }
-  
-  if (request.type === 'GENERATE_COVER_LETTER') {
+
+  if (request.type === "GENERATE_COVER_LETTER") {
     generateCoverLetter(request.jobText, request.jobTitle).then(sendResponse);
     return true;
+  }
+
+  if (request.type === "OPEN_OPTIONS") {
+    chrome.runtime.openOptionsPage();
+    return false;
   }
 });
 
 async function getSettings() {
-  const result = await chrome.storage.sync.get(['profile']);
+  const result = await chrome.storage.sync.get(["profile"]);
   return { ...result, apiKey: OPENAI_API_KEY };
 }
 
 async function checkReady() {
   const { profile } = await getSettings();
-  return { 
+  return {
     ready: !!profile && !!OPENAI_API_KEY,
     hasApiKey: !!OPENAI_API_KEY,
-    hasProfile: !!profile
+    hasProfile: !!profile,
   };
 }
 
 async function parseCV(cvText) {
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_API_KEY}`
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: "gpt-4o-mini",
         messages: [
           {
-            role: 'system',
-            content: `Extract profile info from CV. Return JSON only:
+            role: "system",
+            content: `Analyze if this document is a CV/resume. If it IS a CV, extract profile info. If it is NOT a CV (e.g. invoice, receipt, random document), set is_valid_cv to false.
+
+Return JSON only:
 {
-  "name": "string",
-  "title": "string (current/target job title)",
-  "years_experience": number,
-  "skills": ["skill1", "skill2", ...],
-  "summary": "1-2 sentence summary"
-}`
+  "is_valid_cv": true/false,
+  "name": "string or null",
+  "title": "string (current/target job title) or null",
+  "years_experience": number or 0,
+  "skills": ["skill1", "skill2", ...] or [],
+  "summary": "1-2 sentence summary or null"
+}`,
           },
           {
-            role: 'user',
-            content: cvText
-          }
+            role: "user",
+            content: cvText,
+          },
         ],
-        temperature: 0.1
-      })
+        temperature: 0.1,
+      }),
     });
-    
+
     if (!response.ok) {
       const errData = await response.json().catch(() => ({}));
-      throw new Error(errData.error?.message || `API error: ${response.status}`);
+      throw new Error(
+        errData.error?.message || `API error: ${response.status}`
+      );
     }
-    
+
     const data = await response.json();
     const content = data.choices[0].message.content;
-    
+
     // Parse JSON from response (handle markdown code blocks)
-    const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, content];
+    const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || [
+      null,
+      content,
+    ];
     const profile = JSON.parse(jsonMatch[1].trim());
-    
+
+    // Check if it's a valid CV
+    if (!profile.is_valid_cv) {
+      return { error: "This doesn't look like a CV. Please upload your resume/CV." };
+    }
+
+    // Validate we got meaningful data
+    if (!profile.name || profile.name === "null" || !profile.skills || profile.skills.length === 0) {
+      return { error: "Couldn't extract profile info. Please upload a clearer CV." };
+    }
+
+    // Remove the is_valid_cv flag before saving
+    delete profile.is_valid_cv;
+
     // Save profile
     await chrome.storage.sync.set({ profile });
-    
+
     return { success: true, profile };
   } catch (err) {
-    console.error('parseCV error:', err);
-    return { error: err.message || 'Failed to parse CV' };
+    console.error("parseCV error:", err);
+    return { error: err.message || "Failed to parse CV" };
   }
 }
 
 async function analyzeJob(jobText) {
   try {
     const { profile } = await getSettings();
-    
+
     if (!profile) {
-      return { error: 'No profile. Upload your CV in Settings first.' };
+      return { error: "No profile. Upload your CV in Settings first." };
     }
-    
-    // Log what we're sending to debug
-    console.log('=== JOB MATCH DEBUG ===');
-    console.log('Candidate skills:', profile.skills);
-    console.log('Job text length:', jobText.length);
-    console.log('--- FULL JOB TEXT SENT TO AI ---');
-    console.log(jobText.substring(0, 2000), '... [truncated for console]');
-    console.log('--- END JOB TEXT ---');
-    
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
+
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_API_KEY}`
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: "gpt-4o-mini",
         messages: [
           {
-          role: 'system',
-          content: `Analyze the JOB POSTING. Extract information accurately from the text.
+            role: "system",
+            content: `Analyze the JOB POSTING. Extract information accurately from the text.
 
 Return JSON:
 {
@@ -145,62 +168,67 @@ Return JSON:
   "analysis": "2-3 sentences about skill match and gaps"
 }
 
-IMPORTANT: For matching_skills, carefully compare each required_skill with the candidate's skills list. The candidate's skills are listed above - check each one!`
+IMPORTANT: For matching_skills, carefully compare each required_skill with the candidate's skills list. The candidate's skills are listed above - check each one!`,
           },
           {
-            role: 'user', 
+            role: "user",
             content: `CANDIDATE PROFILE:
 Name: ${profile.name}
 Title: ${profile.title}
 Experience: ${profile.years_experience} years
-Skills (CHECK THESE FOR MATCHING): ${profile.skills.join(', ')}
+Skills (CHECK THESE FOR MATCHING): ${profile.skills.join(", ")}
 
 JOB POSTING:
-${jobText}`
-          }
+${jobText}`,
+          },
         ],
-        temperature: 0.2
-      })
+        temperature: 0.2,
+      }),
     });
-    
+
     if (!response.ok) {
       const errData = await response.json().catch(() => ({}));
-      throw new Error(errData.error?.message || `API error: ${response.status}`);
+      throw new Error(
+        errData.error?.message || `API error: ${response.status}`
+      );
     }
-    
+
     const data = await response.json();
     const content = data.choices[0].message.content;
-    
+
     // Parse JSON from response
-    const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, content];
+    const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || [
+      null,
+      content,
+    ];
     const analysis = JSON.parse(jsonMatch[1].trim());
-    
+
     return { success: true, analysis };
   } catch (err) {
-    console.error('analyzeJob error:', err);
-    return { error: err.message || 'Failed to analyze job' };
+    console.error("analyzeJob error:", err);
+    return { error: err.message || "Failed to analyze job" };
   }
 }
 
 async function generateCoverLetter(jobText, jobTitle) {
   try {
     const { profile } = await getSettings();
-    
+
     if (!profile) {
-      return { error: 'No profile. Upload your CV in Settings first.' };
+      return { error: "No profile. Upload your CV in Settings first." };
     }
-    
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
+
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_API_KEY}`
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: "gpt-4o-mini",
         messages: [
           {
-            role: 'system',
+            role: "system",
             content: `Write a SHORT cover letter (3-4 paragraphs max, ~150-200 words). Be concise, professional, and genuine.
 
 Structure:
@@ -208,10 +236,10 @@ Structure:
 2. 2-3 key relevant skills/experiences that match the job
 3. Quick closer with call to action
 
-Style: Confident but not arrogant. Specific but brief. No fluff or generic phrases like "I am writing to express my interest..." - get straight to the point.`
+Style: Confident but not arrogant. Specific but brief. No fluff or generic phrases like "I am writing to express my interest..." - get straight to the point.`,
           },
           {
-            role: 'user',
+            role: "user",
             content: `Write a cover letter for this position:
 
 JOB: ${jobTitle}
@@ -223,32 +251,34 @@ CANDIDATE:
 Name: ${profile.name}
 Title: ${profile.title}
 Experience: ${profile.years_experience} years
-Skills: ${profile.skills.join(', ')}
-Background: ${profile.summary}`
-          }
+Skills: ${profile.skills.join(", ")}
+Background: ${profile.summary}`,
+          },
         ],
-        temperature: 0.7
-      })
+        temperature: 0.7,
+      }),
     });
-    
+
     if (!response.ok) {
       const errData = await response.json().catch(() => ({}));
-      throw new Error(errData.error?.message || `API error: ${response.status}`);
+      throw new Error(
+        errData.error?.message || `API error: ${response.status}`
+      );
     }
-    
+
     const data = await response.json();
     const coverLetter = data.choices[0].message.content;
-    
+
     return { success: true, coverLetter };
   } catch (err) {
-    console.error('generateCoverLetter error:', err);
-    return { error: err.message || 'Failed to generate cover letter' };
+    console.error("generateCoverLetter error:", err);
+    return { error: err.message || "Failed to generate cover letter" };
   }
 }
 
 // Open settings on install
 chrome.runtime.onInstalled.addListener((details) => {
-  if (details.reason === 'install') {
+  if (details.reason === "install") {
     chrome.runtime.openOptionsPage();
   }
 });

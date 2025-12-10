@@ -6,7 +6,7 @@ Simple Chrome extension: upload your CV, get instant job match insights.
 
 1. **Upload your CV (PDF)** → AI extracts your skills & experience
 2. **Browse jobs** on LinkedIn, Indeed, Greenhouse, Lever
-3. **Click the ✓ button** → See match analysis
+3. **Click the ✨ button** → See match analysis
 
 ## What You Get
 
@@ -34,7 +34,7 @@ Simple Chrome extension: upload your CV, get instant job match insights.
 5. Upload your CV (PDF)
 6. Wait for AI to parse your profile
 
-Done! Now go to any job listing and click the ✓ button.
+Done! Now go to any job listing and click the ✨ button.
 
 > **Note:** `config.js` is gitignored - your API key won't be committed.
 

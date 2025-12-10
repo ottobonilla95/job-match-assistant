@@ -52,35 +52,32 @@
       font-size: 13px;
       font-weight: 600;
       cursor: pointer;
+      margin-bottom: 8px;
     }
     .btn:hover { background: #e5e5e5; }
+    .btn.primary {
+      background: #22c55e;
+      color: #fff;
+    }
+    .btn.primary:hover { background: #16a34a; }
+    .btn.primary:disabled {
+      background: #333;
+      color: #666;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
   <div class="header">
-    <div class="logo">✓</div>
+    <div class="logo">✨</div>
     <h1>Job Match</h1>
   </div>
   
   <div id="status" class="status">Checking...</div>
   
+  <button class="btn primary" id="activate-btn">🔍 Analyze This Page</button>
   <button class="btn" id="settings-btn">Settings</button>
 
-  <script>
-    document.getElementById('settings-btn').onclick = () => {
-      chrome.runtime.openOptionsPage();
-    };
-
-    chrome.runtime.sendMessage({ type: 'CHECK_READY' }, (res) => {
-      const el = document.getElementById('status');
-      if (res.ready) {
-        el.className = 'status ready';
-        el.innerHTML = '✅ Ready<br>Click ✓ on any job page';
-      } else {
-        el.className = 'status warn';
-        el.innerHTML = '⚠️ Paste your CV in Settings';
-      }
-    });
-  </script>
+  <script src="popup.js"></script>
 </body>
 </html>

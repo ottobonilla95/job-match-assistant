@@ -4,6 +4,7 @@ const fileInput = document.getElementById('file-input');
 const dropZone = document.getElementById('drop-zone');
 const fileName = document.getElementById('file-name');
 const status = document.getElementById('status');
+const uploadSection = document.getElementById('upload-section');
 const profileSection = document.getElementById('profile-section');
 const profileDisplay = document.getElementById('profile-display');
 
@@ -56,10 +57,9 @@ async function handleFile(file) {
     return;
   }
   
-  dropZone.classList.add('loading');
-  dropZone.classList.remove('success');
-  fileName.textContent = 'Reading PDF...';
-  fileName.classList.remove('hidden');
+  // Hide entire upload section, show analyzing status
+  uploadSection.classList.add('hidden');
+  showStatus('📄 Reading PDF...', 'loading', true);
   
   try {
     // Extract text from PDF
@@ -67,27 +67,35 @@ async function handleFile(file) {
     await chrome.storage.sync.set({ cvText });
     
     // Auto-parse with AI
-    fileName.textContent = 'Analyzing with AI...';
+    showStatus('✨ Analyzing with AI...', 'loading', true);
     
     const response = await chrome.runtime.sendMessage({
       type: 'PARSE_CV',
       cvText
     });
     
-    dropZone.classList.remove('loading');
-    dropZone.classList.add('success');
-    fileName.textContent = '✓ ' + file.name;
+    // Show upload section again
+    uploadSection.classList.remove('hidden');
     
     if (response?.profile) {
+      dropZone.classList.add('success');
+      fileName.textContent = '✓ ' + file.name;
+      fileName.classList.remove('hidden');
       showStatus('Profile ready!', 'success');
       showProfile(response.profile);
     } else {
-      showStatus(response?.error || 'Failed to parse CV', 'error');
+      // Not a valid CV - reset state and hide profile
+      dropZone.classList.remove('success');
+      fileName.classList.add('hidden');
+      profileSection.classList.add('hidden');
+      showStatus(response?.error || 'Failed to parse CV', 'error', true);
     }
   } catch (err) {
-    dropZone.classList.remove('loading');
+    uploadSection.classList.remove('hidden');
+    dropZone.classList.remove('success');
     fileName.classList.add('hidden');
-    showStatus('Error: ' + err.message, 'error');
+    profileSection.classList.add('hidden');
+    showStatus('Error: ' + err.message, 'error', true);
   }
 }
 
@@ -106,10 +114,13 @@ async function extractPdfText(file) {
   return text.trim();
 }
 
-function showStatus(msg, type) {
+function showStatus(msg, type, persistent = false) {
   status.textContent = msg;
   status.className = `status ${type}`;
-  setTimeout(() => status.classList.add('hidden'), 3000);
+  // Errors stay visible, success messages fade after 3s
+  if (!persistent && type === 'success') {
+    setTimeout(() => status.classList.add('hidden'), 3000);
+  }
 }
 
 function showProfile(profile) {
@@ -128,5 +139,37 @@ function showProfile(profile) {
     <div class="skills">
       ${(profile.skills || []).map(s => `<span class="skill">${s}</span>`).join('')}
     </div>
+  `;
+  
+  // Show next steps
+  showNextSteps();
+}
+
+function showNextSteps() {
+  let nextSteps = document.getElementById('next-steps');
+  if (!nextSteps) {
+    nextSteps = document.createElement('div');
+    nextSteps.id = 'next-steps';
+    nextSteps.className = 'card next-steps';
+    document.querySelector('.app').appendChild(nextSteps);
+  }
+  
+  nextSteps.innerHTML = `
+    <h2>🚀 Ready to go!</h2>
+    <div class="steps">
+      <div class="step">
+        <span class="step-num">1</span>
+        <span>Go to any job posting (LinkedIn, Indeed, company careers page...)</span>
+      </div>
+      <div class="step">
+        <span class="step-num">2</span>
+        <span>Click the <strong>✨</strong> button that appears</span>
+      </div>
+      <div class="step">
+        <span class="step-num">3</span>
+        <span>Get instant match analysis & cover letter</span>
+      </div>
+    </div>
+    <p class="tip">💡 <strong>Tip:</strong> On non-supported sites, click the extension icon → "Analyze This Page"</p>
   `;
 }

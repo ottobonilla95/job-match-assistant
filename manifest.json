@@ -5,7 +5,8 @@
   "description": "Paste your CV, get instant job match insights",
   "permissions": [
     "storage",
-    "activeTab"
+    "activeTab",
+    "scripting"
   ],
   "host_permissions": [
     "https://www.linkedin.com/*",
